@@ -405,7 +405,8 @@ class TokenCounter(Protocol):
 
     async def count_texts_async(
         self, texts: list[str], loop: asyncio.AbstractEventLoop, /
-    ) -> list[int]: ...
+    ) -> list[int]:
+        pass
 
     async def token_count_message_async(
         self,
@@ -414,7 +415,8 @@ class TokenCounter(Protocol):
         tool_calls: tuple[dict[str, Any], ...] | None,
         loop: asyncio.AbstractEventLoop,
         /,
-    ) -> int: ...
+    ) -> int:
+        pass
 
 
 class TokenBatchQueue:
