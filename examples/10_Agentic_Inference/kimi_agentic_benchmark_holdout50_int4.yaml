@@ -1,0 +1,45 @@
+name: "kimi-agentic-benchmark-int4-holdout50"
+version: "1.0"
+type: "online" # do not change.
+
+model_params:
+  name: "kimi-k2.6"
+  tokenizer_name: /data/workloads-inference/models/Kimi-K2.6-INT4
+  temperature: 1.0 # do not change.
+  top_p: 0.95 # do not change.
+  max_new_tokens: 8192 # do not change.
+  chat_template_kwargs:
+    thinking: true # do not change.
+    preserve_thinking: true # do not change.
+
+datasets:
+  - name: agentic_holdout_50
+    type: performance # do not change.
+    path: /home/hmahmad/endpoints/agentic_combined_v4_holdout_50.jsonl
+    accuracy_config:
+      eval_method: agentic_inference_inline # required benchmark default.
+    agentic_inference:
+      enable_salt: true # required benchmark default.
+      inject_tool_delay: true # required benchmark default.
+      num_trajectories_to_issue: 50
+      # Required benchmark default; set to true only for faster optimization/debug runs.
+      stop_issuing_on_first_user_complete: false
+
+settings:
+  runtime:
+    min_duration_ms: 0
+
+  load_pattern:
+    type: agentic_inference
+    target_concurrency: 8 # Submission-specific concurrency.
+
+  client:
+    warmup_connections: 0
+    max_idle_time: 0.5
+
+endpoint_config:
+  endpoints:
+    - "http://localhost:8000"
+  api_type: openai # do not change.
+
+report_dir: logs/kimi_agentic_holdout_50_int4
