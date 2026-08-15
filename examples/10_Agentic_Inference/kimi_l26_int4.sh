@@ -117,6 +117,7 @@ cmd_start_server() {
         --mem-fraction-static 0.75 \
         --cuda-graph-backend-decode disabled \
         --disable-radix-cache \
+        --watchdog-timeout 3600 \
         --host 0.0.0.0 \
         --port 8000'
   echo "Started ${CONTAINER_NAME}. Tail logs with: $0 logs-server"
