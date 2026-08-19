@@ -34,13 +34,10 @@ REPO_ROOT="${REPO_ROOT:-$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
 
 CONTAINER="${CONTAINER:-kimi-k3-server}"
 PORT="${PORT:-30000}"
-SMOKE_YAML="${SCRIPT_DIR}/kimi_k3_agentic_smoke.yaml"
-# Runnable full run. kimi_k3_agentic_benchmark.yaml keeps the submission-shaped
-# config (official dataset path, 613 trajectories) but cannot run while the
-# published artifact is corrupt.
-FULL_YAML="${FULL_YAML:-${SCRIPT_DIR}/kimi_k3_agentic_full_clean266.yaml}"
+SMOKE_YAML="${SMOKE_YAML:-${SCRIPT_DIR}/kimi_k3_agentic_smoke.yaml}"
+FULL_YAML="${FULL_YAML:-${SCRIPT_DIR}/kimi_k3_agentic_benchmark.yaml}"
 SMOKE_REPORT_DIR="${SMOKE_REPORT_DIR:-logs/kimi_k3_mi355x_smoke}"
-FULL_REPORT_DIR="${FULL_REPORT_DIR:-logs/kimi_k3_mi355x_full_clean266}"
+FULL_REPORT_DIR="${FULL_REPORT_DIR:-logs/kimi_k3_mi355x_full}"
 TMUX_SMOKE="${TMUX_SMOKE:-kimi-k3-smoke}"
 TMUX_FULL="${TMUX_FULL:-kimi-k3-full}"
 

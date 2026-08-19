@@ -16,7 +16,7 @@ model_params:
 datasets:
   - name: agentic_combined
     type: performance
-    path: examples/10_Agentic_Inference/datasets/mlperf_agentic_inference_dataset.jsonl
+    path: examples/10_Agentic_Inference/datasets/agentic_combined_v6.jsonl
     accuracy_config:
       eval_method: agentic_inference_inline # required benchmark default.
       num_repeats: 1

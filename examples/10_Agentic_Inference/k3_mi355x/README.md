@@ -128,13 +128,20 @@ engine parses differently, and verification samples tokenize differently.
 Setting `tokenizer_name` here crashes the metrics aggregator at startup, before
 any request is issued.
 
-**Dataset.** The full config points at the official dataset path with
-`num_trajectories_to_issue: 613`, matching the recipe. The artifact currently
-published at `endpoints.mlcommons-storage.org` does not satisfy that: it
-contains 268 trajectories, carries a binary splice that is not valid UTF-8, and
-is truncated mid-record, so `pd.read_json(..., lines=True)` cannot open it. The
-smoke config points at a v4 holdout set instead, which loads cleanly but is not
-comparable to any reference numbers.
+## Dataset
+
+Both configs read `datasets/agentic_combined_v6.jsonl`: 613 conversations
+(500 workflow, 113 coding), 40,700 messages, which is the size the submission
+rules require `num_trajectories_to_issue` to be a multiple of. Datasets are
+gitignored, so this file has to be placed on each node separately.
+
+Do not use the artifact published at `endpoints.mlcommons-storage.org`. It is a
+truncated prefix of the same data — 268 of the 613 conversations, ending
+mid-record, with a binary splice that makes it invalid UTF-8 — so
+`pd.read_json(..., lines=True)` cannot open it and the run fails at dataset
+load. Every conversation it does contain is present in v6. `make_clean_dataset.py`
+drops the unreadable conversations from that artifact if you ever need to work
+with it directly; it is not needed when v6 is available.
 
 ## Relationship to the older agentic guide
 
@@ -167,8 +174,8 @@ CUDA_GRAPH_DECODE=enabled ./serve_kimi_k3_mi355x.sh
 ```
 
 `--mamba-full-memory-ratio 0.54` is carried over from the GB200 recipe, which
-sizes it for a ~150k average request length. On the full 266-conversation run
-that allocation is badly mismatched to this workload: the mamba pool never rose
+sizes it for a ~150k average request length. On a full multi-hundred-conversation
+run that allocation is badly mismatched to this workload: the mamba pool never rose
 above 6% utilization while the KV pool saturated at 97-98%, collapsing
 concurrency from the configured 28 down to 1-2 and cutting generation
 throughput from 200-500 tok/s to 66 tok/s. Startup allocates only 7.16 GB per

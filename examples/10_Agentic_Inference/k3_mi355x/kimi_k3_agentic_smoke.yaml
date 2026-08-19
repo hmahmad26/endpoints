@@ -17,9 +17,7 @@ model_params:
 datasets:
   - name: agentic_combined
     type: performance
-    # Official dataset with the two damaged trajectories removed; see
-    # make_clean_dataset.py and ./README.md. Not valid for a submission.
-    path: examples/10_Agentic_Inference/datasets/mlperf_agentic_inference_dataset_clean.jsonl
+    path: examples/10_Agentic_Inference/datasets/agentic_combined_v6.jsonl
     accuracy_config:
       eval_method: agentic_inference_inline
       num_repeats: 1
