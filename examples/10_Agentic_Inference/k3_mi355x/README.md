@@ -52,7 +52,7 @@ image cannot run K3 — two kernels fail to compile for gfx950:
 | 4 nodes x 4 GPUs = 16                              | 1 node x 8 GPUs                 | Available hardware                         |
 | `--tp-size 16` plus multinode rendezvous flags     | `--tp-size 8`, no such flags    | Single node needs no rendezvous            |
 | `--dcp-size 16`                                    | omitted                         | See "DCP" below                            |
-| `--mem-fraction-static 0.85`                       | `0.97`                          | See "Memory" below                         |
+| `--mem-fraction-static 0.85`                       | `0.94`                          | See "Memory" below                         |
 | `SGLANG_FORCE_COARSE_WAR_BARRIER=1`                | dropped                         | CUDA-graph workaround with no ROCm analogue |
 | `SGLANG_ENABLE_TP_MEMORY_INBALANCE_CHECK=0`        | kept                            | Framework-level, not vendor-specific       |
 | `--mamba-full-memory-ratio 0.54`                   | kept                            | Same ~150k average request length          |
@@ -173,19 +173,24 @@ measuring — disabling graphs costs significant decode throughput. Override wit
 CUDA_GRAPH_DECODE=enabled ./serve_kimi_k3_mi355x.sh
 ```
 
-The KV pool is what runs out on long agentic contexts, and the static memory
-fraction is the lever. At `0.94` a full run saturated KV at 97-98% while the
-mamba pool never rose above 6%, collapsing concurrency from the configured 28
-down to 1-2 and cutting generation throughput from 200-500 tok/s to 66 tok/s.
+The KV pool is what runs out on long agentic contexts. A full run at `0.94`
+saturated KV at 97-98% while the mamba pool never rose above 6%, collapsing
+concurrency from the configured 28 down to 1-2 and cutting generation throughput
+from 200-500 tok/s to 66 tok/s.
 
-`--mamba-full-memory-ratio 0.54` is not the culprit and should not be lowered:
-it sizes the mamba cache at 141 states, which at 5 slots per request is exactly
-the 28 concurrent requests we ask for. Reducing it would cut concurrency.
+Two tempting fixes both make things worse.
 
-The waste is elsewhere. At `0.94` the pool allocator reported `avail mem=16.88 GB`
-per GPU still unallocated, while KV received only 7.16 GB (278,159 tokens).
-Raising the static fraction hands that headroom to KV, which is why the default
-here is `0.97`. Lower it if weight loading OOMs.
+`--mamba-full-memory-ratio 0.54` should not be lowered: it sizes the mamba cache
+at 141 states, which at 5 slots per request is exactly the 28 concurrent requests
+we ask for. Reducing it cuts concurrency.
+
+Raising `--mem-fraction-static` should not be used to buy KV capacity either. At
+`0.94` the allocator reports `avail mem=16.88 GB` per GPU still unallocated while
+KV receives 7.16 GB (278,159 tokens), which looks like waste. It is not — that
+headroom is the runtime working set for activations, chunked-prefill buffers and
+CUDA-graph private pools. At `0.97` the server loads cleanly and KV nearly
+doubles to 12.55 GB (487,342 tokens), then the scheduler OOMs on a 264 MiB
+allocation about 90 seconds into real traffic and SIGQUITs the whole server.
 
 Wall-clock budgeting should use the full run duration, not the performance
 window. Beware extrapolating from early progress: throughput is high while
