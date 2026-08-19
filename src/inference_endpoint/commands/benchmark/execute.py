@@ -46,6 +46,11 @@ from urllib.parse import urljoin
 import msgspec.json
 import msgspec.structs
 from huggingface_hub import model_info
+from huggingface_hub.errors import (
+    GatedRepoError,
+    HfHubHTTPError,
+    RepositoryNotFoundError,
+)
 from tqdm import tqdm
 from transformers.utils import logging as transformers_logging
 
@@ -239,6 +244,17 @@ def _check_tokenizer_exists(model_name: str) -> bool:
             f"huggingface_hub not installed, assuming tokenizer exists for {model_name}"
         )
         return True
+    except (RepositoryNotFoundError, GatedRepoError, HfHubHTTPError) as e:
+        # model_params.name doubles as the OpenAI `model` field, so it is often
+        # the server's --served-model-name alias rather than a Hub repo ID. The
+        # Hub answers 401 for unknown repos, so this is indistinguishable from
+        # an auth failure; set model_params.tokenizer_name to probe the real
+        # repo or a local checkpoint directory instead.
+        logger.warning(
+            f"'{model_name}' is not a resolvable Hugging Face repo ID ({type(e).__name__}); "
+            "set model_params.tokenizer_name to enable ISL/OSL/TPOT metrics"
+        )
+        return False
     except Exception as e:
         logger.warning(f"Could not verify tokenizer for {model_name}: {e}")
         logger.warning(
