@@ -29,7 +29,11 @@ TP_SIZE="${TP_SIZE:-8}"
 # context_len > 8192, capping the budget below the 249.3 GB/GPU weight
 # footprint, so it can never load K3 regardless of the value passed.
 ATTN_BACKEND="${ATTN_BACKEND:-triton}"
-MEM_FRACTION="${MEM_FRACTION:-0.94}"
+# At 0.94 the pool allocator left ~16.9 GB/GPU unallocated while the KV pool got
+# only 7.16 GB (278k tokens) and saturated at 97% on long agentic contexts,
+# collapsing concurrency from 28 to 1-2. Mamba is sized for exactly 28 concurrent
+# requests (141 states, 5 per request), so the headroom belongs to KV.
+MEM_FRACTION="${MEM_FRACTION:-0.97}"
 
 # Halves the SSM state: without it the mamba pool caps max_running_requests
 # at 14, which is below any useful concurrency.
