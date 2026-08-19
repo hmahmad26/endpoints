@@ -1,0 +1,56 @@
+name: "kimi-k3-agentic-mi355x-smoke"
+version: "1.0"
+type: "online"
+
+# Short validation run: same serving path, sampling, and load pattern as
+# kimi_k3_agentic_benchmark.yaml, but a small trajectory count and no SWE-bench
+# dataset. Use this to confirm the stack end to end and to calibrate wall-clock
+# before committing to the full run. Not a submission config.
+
+model_params:
+  name: "kimi-k3"
+  temperature: 1.0
+  top_p: 1.0
+  max_new_tokens: 8192
+  streaming: "on"
+
+datasets:
+  - name: agentic_combined
+    type: performance
+    # Official dataset with the two damaged trajectories removed; see
+    # make_clean_dataset.py and ./README.md. Not valid for a submission.
+    path: examples/10_Agentic_Inference/datasets/mlperf_agentic_inference_dataset_clean.jsonl
+    accuracy_config:
+      eval_method: agentic_inference_inline
+      num_repeats: 1
+    agentic_inference:
+      enable_salt: true
+      inject_tool_delay: false
+      num_trajectories_to_issue: 20
+      stop_issuing_on_first_user_complete: false
+      turn_timeout_s: 86400.0
+
+settings:
+  runtime:
+    min_duration_ms: 0
+    max_duration_ms: 0
+    scheduler_random_seed: 42
+    dataloader_random_seed: 42
+
+  load_pattern:
+    type: agentic_inference
+    target_concurrency: 28
+
+  client:
+    num_workers: 4
+    warmup_connections: 0
+    max_connections: -1
+    max_idle_time: 0.5
+    worker_initialization_timeout: 600.0
+
+endpoint_config:
+  endpoints:
+    - "http://localhost:30000"
+  api_type: openai
+
+report_dir: logs/kimi_k3_mi355x_smoke
