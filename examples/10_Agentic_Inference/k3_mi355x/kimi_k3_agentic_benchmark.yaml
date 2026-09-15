@@ -38,10 +38,10 @@ settings:
 
   load_pattern:
     type: agentic_inference
-    # The GB200 recipe uses 64. On 8x MI355X the mamba state cache caps
-    # max_running_requests at 28 (with --mamba-ssm-dtype bfloat16), so anything
-    # above that only queues.
-    target_concurrency: 28
+    # The GB200 recipe uses 64. The official MI355X Balanced cookbook cell does
+    # not set --mamba-ssm-dtype bfloat16, so the mamba/KDA state pool typically
+    # caps max_running_requests near 14; higher client concurrency mostly queues.
+    target_concurrency: 14
 
   client:
     num_workers: 4

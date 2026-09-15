@@ -37,7 +37,8 @@ settings:
 
   load_pattern:
     type: agentic_inference
-    target_concurrency: 28
+    # Match kimi_k3_agentic_benchmark.yaml (MI355X cookbook serve → ~14 admit).
+    target_concurrency: 14
 
   client:
     num_workers: 4

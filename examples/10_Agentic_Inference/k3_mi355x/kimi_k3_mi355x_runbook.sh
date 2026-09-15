@@ -69,8 +69,9 @@ case "${1:-help}" in
     ss -ltn "sport = :${PORT}" 2>/dev/null | tail -n +2 | grep -q . \
       && echo "OCCUPIED" || echo "free"
     echo "--- image ---"
-    docker image inspect kimi-k3-rocm:hipfallback >/dev/null 2>&1 \
-      && echo "kimi-k3-rocm:hipfallback present" || echo "MISSING: build Dockerfile.hipfallback"
+    IMAGE="${IMAGE:-lmsysorg/sglang-rocm:v0.5.19-rocm720-mi35x-20260910}"
+    docker image inspect "${IMAGE}" >/dev/null 2>&1 \
+      && echo "${IMAGE} present" || echo "MISSING: docker pull ${IMAGE}"
     ;;
 
   start-server)
